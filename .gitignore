@@ -5,3 +5,4 @@ msd/input/kaggle_songs.txt
 msd/input/kaggle_users.txt
 msd/input/kaggle_visible_evaluation_triplets.txt
 msd/input/taste_profile_song_to_tracks.txt
+*checkpoint.ipynb
