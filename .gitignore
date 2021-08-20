@@ -5,4 +5,12 @@ msd/input/kaggle_songs.txt
 msd/input/kaggle_users.txt
 msd/input/kaggle_visible_evaluation_triplets.txt
 msd/input/taste_profile_song_to_tracks.txt
+msd/input/songs_data/MillionSongSubset/*
+msd/input/songs_data/mxm_dataset_test.txt
+msd/input/songs_data/mxm_dataset_train.txt
 *checkpoint.ipynb
+msd/input/train_triplets.txt
+msd/input/year1_test_triplets_hidden.txt
+msd/input/year1_test_triplets_visible.txt
+msd/input/year1_valid_triplets_hidden.txt
+msd/input/year1_valid_triplets_visible.txt
