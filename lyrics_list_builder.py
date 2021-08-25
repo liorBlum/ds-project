@@ -14,6 +14,7 @@ all_lyrics = {}
 
 # Build Genius URLs dictionary
 
+print('Building all_urls list...')
 start_time = time.time()
 
 def parse_name(name):
@@ -23,7 +24,7 @@ def parse_name(name):
 
 currently_have = 0
 with open('./data/all_songs.json', 'r') as songs_file:
-    with open('./data/lyrics1-10000.json', 'r') as lyrics_file:
+    with open('./data/lyrics1-100000.json', 'r') as lyrics_file:
         all_songs = json.load(songs_file)
         all_lyrics = json.load(lyrics_file)
         assert type(all_lyrics) == dict
@@ -31,7 +32,7 @@ with open('./data/all_songs.json', 'r') as songs_file:
         counter = 0
         for track_id, track_data in all_songs.items():
             # Limit number of songs
-            if counter >= 10000:
+            if counter >= 100000:
                 break
             counter += 1
             # Don't fetch lyrics we already have
@@ -45,21 +46,19 @@ with open('./data/all_songs.json', 'r') as songs_file:
                     f'https://genius.com/{parsed_artist_name}-{parsed_track_name}-lyrics'))
                 
             else:
-                all_require_search.append((track_id, track_data, ''))
+                all_require_search.append((track_id, track_data))
             
 
 print(f'len(all_urls) equals {len(all_urls)}')
 print("--- URLs list building took %s seconds ---" % (time.time() - start_time))
-
-all_require_search += all_urls # DEBUG
 
 
 # Build lyrics list with asynchronous HTTP requests to genius.com
 
 async def search_url(session, track_id, track_data):
     try:
-        # search_term = f"{track_data['track_name']} {track_data['artist_name']}".strip()
-        search_term = f"{track_data['track_name']}".strip()
+        search_term = f"{track_data['track_name']} {track_data['artist_name']}".strip()
+        # search_term = f"{track_data['track_name']}".strip() # Usually finds more songs this way
         path = 'https://genius.com/api/search/multi'
         params_ = {'q': search_term}
         async with session.get(path, timeout=5, params=params_) as resp:
@@ -68,52 +67,54 @@ async def search_url(session, track_id, track_data):
                 return (track_id, track_data, url(resp['response'], track_data['track_name']))
             
             else:
-                print(f"received status {resp.status} for {track_data['track_name']}")
+                print(f"Received status {resp.status} for {track_data['track_name']}") if resp.status != 404 else None
                 return (track_id, track_data, None)
     except Exception as e:
-        print(f'Received error {type(e)} for {url}')
+        # print(f"Received error {type(e)} for {track_data['track_name']}")
         # raise e
         return (track_id, track_data, None)
 
 async def get_lyrics(session, url, track_id, track_name):
     try:
-        async with session.get(url, timeout=10) as resp:
+        async with session.get(url, timeout=5) as resp:
             if (resp.status == 200):
                 lyrics_html = await resp.text()
                 return (track_id, track_name + '\n' + lyrics(lyrics_html, True))
             else:
-                print(f'received status {resp.status} for {url}')
+                print(f'Received status {resp.status} for {url}') if resp.status != 404 else None
                 return (track_id, None)
     except Exception as e:
-        print(f'Received error {type(e)} for {url}')
+        # print(f'Received error {type(e)} for {url}')
         # raise e
         return (track_id, None)
 
-new_urls = []
+missing_urls = []
 songs_lyrics_list = []
 
 async def add_to_urls_list(tracks_list, songs_offsets=(0, None)):
-    global new_urls
+    """ Search for missing songs """
+    global missing_urls
 
     async with aiohttp.ClientSession() as session:
         tasks = []
         counter = 0
-        print(f'searching URLs of songs {songs_offsets[0]}:{songs_offsets[1]}')
-        for track_id, track_data, _ in tracks_list[songs_offsets[0]:songs_offsets[1]]:
+        print(f'Searching URLs of songs {songs_offsets[0]}:{songs_offsets[1]}...')
+        for track_id, track_data in tracks_list[songs_offsets[0]:songs_offsets[1]]:
             # if counter >= 1:
             #     break
             tasks.append(asyncio.ensure_future(search_url(session, track_id, track_data)))
             # counter += 1
 
-        new_urls += await asyncio.gather(*tasks)
+        missing_urls += await asyncio.gather(*tasks)
 
 async def add_to_lyrics_list(urls_list, songs_offsets=(0, None)):
+    """ Try to retrieve lyrics from URLs """
     global songs_lyrics_list
 
     async with aiohttp.ClientSession() as session:
         tasks = []
         counter = 0
-        print(f'retrieving lyrics of songs {songs_offsets[0]}:{songs_offsets[1]}')
+        print(f'Retrieving lyrics of songs {songs_offsets[0]}:{songs_offsets[1]}...')
         for track_id, track_data, url in urls_list[songs_offsets[0]:songs_offsets[1]]:
             # if counter >= 1:
             #     break
@@ -123,41 +124,47 @@ async def add_to_lyrics_list(urls_list, songs_offsets=(0, None)):
         songs_lyrics_list += await asyncio.gather(*tasks)
         
 
-# total_songs_num = len(all_urls) # DEBUG
-total_songs_num = len(all_require_search)
-songs_at_each_interval = 100
+total_songs_num = len(all_urls)
+songs_at_each_interval = 200
+
 
 start_time = time.time()
+print('Retrieving lyrics from URLs found in all_urls...')
 for i in range(0, total_songs_num, songs_at_each_interval):
+    asyncio.run(add_to_lyrics_list(all_urls, (i, i + songs_at_each_interval)))
+    time.sleep(0.2)
+end_time = time.time()
+print("--- Lyrics retrieval took %s seconds ---" % (end_time - start_time))
+
+for track_id, track_lyrics in songs_lyrics_list:
+    if not track_lyrics:
+        all_require_search.append((track_id, all_songs[track_id]))
+
+songs_lyrics_list = [(track_id, lyrics) for (track_id, lyrics) in songs_lyrics_list if lyrics]
+print(f'Retrieved lyrics of {len(songs_lyrics_list)} songs')
+
+start_time = time.time()
+print('Retrieving missing songs with search...')
+for i in range(0, len(all_require_search), songs_at_each_interval):
     asyncio.run(add_to_urls_list(all_require_search, (i, i + songs_at_each_interval)))
     time.sleep(0.2)
 print("--- Missing songs search took %s seconds ---" % (time.time() - start_time))
-new_urls = [(track_id, track_data, track_url) for (track_id, track_data, track_url) in new_urls if track_url]
-print(f'found {len(new_urls)} URLS of missing songs')
+missing_urls = [(track_id, track_data, track_url) for (track_id, track_data, track_url) in missing_urls if track_url]
+print(f'Found {len(missing_urls)} URLS of missing songs')
+all_require_search.clear()
 
 start_time = time.time()
-for i in range(0, total_songs_num, songs_at_each_interval):
-    asyncio.run(add_to_lyrics_list(new_urls, (i, i + songs_at_each_interval)))
+for i in range(0, len(missing_urls), songs_at_each_interval):
+    asyncio.run(add_to_lyrics_list(missing_urls, (i, i + songs_at_each_interval)))
     time.sleep(0.2)
 end_time = time.time()
 print("--- Missing lyrics retrieval through search took %s seconds ---" % (end_time - start_time))
 
-# start_time = time.time()
-# for i in range(0, total_songs_num, songs_at_each_interval):
-#     asyncio.run(add_to_lyrics_list(all_urls, (i, i + songs_at_each_interval)))
-#     time.sleep(0.2)
-# end_time = time.time()
-
-# print("--- Lyrics retrieval took %s seconds ---" % (end_time - start_time))
-
-
-# songs_lyrics_list = [(track_id, lyrics) for (track_id, lyrics) in songs_lyrics_list if lyrics]
-# print(f'finished lyrics retrieval of {len(songs_lyrics_list)} songs')
 
 start_time = time.time()
-file_path = './data/lyrics1-10000.json'
+file_path = './data/lyrics1-100000.json'
 with open(file_path, 'w') as f:
-    all_lyrics.update({track_id: lyrics for (track_id, lyrics) in songs_lyrics_list})
+    all_lyrics.update({track_id: lyrics for (track_id, lyrics) in songs_lyrics_list if lyrics})
     json.dump(all_lyrics, f)
-print(f"added lyrics for {len(songs_lyrics_list)} songs to {file_path}")
+print(f"Added lyrics for {len(songs_lyrics_list)} songs to {file_path}")
 print("--- Lyrics file writing took %s seconds ---" % (end_time - start_time))
