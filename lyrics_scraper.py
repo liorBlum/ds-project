@@ -1,8 +1,4 @@
-import json
-import os
 import re
-import shutil
-import time
 import unicodedata
 from string import punctuation
 
@@ -68,10 +64,6 @@ def url(search_response, track_name):
     else:
         return result['url']
 
-
-# from .api import API, PublicAPI
-# from .types import Album, Artist, Song, Track
-# from .utils import clean_str, safe_unicode
 
 def lyrics(raw_lyrics_page, remove_section_headers=False, verbose=False):
         """

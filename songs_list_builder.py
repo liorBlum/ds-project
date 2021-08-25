@@ -23,6 +23,6 @@ def add_all_songs_from_file(path):
 for slice_file in os.listdir(spotify_dataset_path):
     add_all_songs_from_file(spotify_dataset_path + slice_file)
     print(f'added songs from {slice_file}')
-with open('./data/all_songs.json', 'w') as f:
+with open('./data/songs_dataset.json', 'w') as f:
     json.dump(all_songs, f)
     print(f'\nadded {len(all_songs)} songs')

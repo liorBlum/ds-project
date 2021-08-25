@@ -22,8 +22,8 @@ def parse_name(name):
     s = re.search(r'([^()\[\]-]*)', s).group(1).strip().replace(' ', '-').replace('&', 'and')
     return re.sub('[^a-zA-Z0-9_\-]', '', s)
 
-currently_have = 0
-with open('./data/all_songs.json', 'r') as songs_file:
+existing_lyrics_amount = 0
+with open('./data/songs_dataset.json', 'r') as songs_file:
     with open('./data/lyrics1-100000.json', 'r') as lyrics_file:
         all_songs = json.load(songs_file)
         all_lyrics = json.load(lyrics_file)
@@ -37,7 +37,7 @@ with open('./data/all_songs.json', 'r') as songs_file:
             counter += 1
             # Don't fetch lyrics we already have
             if all_lyrics.get(track_id):
-                currently_have += 1
+                existing_lyrics_amount += 1
                 continue
             parsed_track_name = parse_name(track_data['track_name'])
             parsed_artist_name = parse_name(track_data['artist_name'])
@@ -153,6 +153,7 @@ missing_urls = [(track_id, track_data, track_url) for (track_id, track_data, tra
 print(f'Found {len(missing_urls)} URLS of missing songs')
 all_require_search.clear()
 
+
 start_time = time.time()
 for i in range(0, len(missing_urls), songs_at_each_interval):
     asyncio.run(add_to_lyrics_list(missing_urls, (i, i + songs_at_each_interval)))
@@ -162,7 +163,7 @@ print("--- Missing lyrics retrieval through search took %s seconds ---" % (end_t
 
 
 start_time = time.time()
-file_path = './data/lyrics1-100000.json'
+file_path = './data/lyrics_corpus.json'
 with open(file_path, 'w') as f:
     all_lyrics.update({track_id: lyrics for (track_id, lyrics) in songs_lyrics_list if lyrics})
     json.dump(all_lyrics, f)
