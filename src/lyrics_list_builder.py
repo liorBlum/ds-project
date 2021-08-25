@@ -23,8 +23,8 @@ def parse_name(name):
     return re.sub('[^a-zA-Z0-9_\-]', '', s)
 
 existing_lyrics_amount = 0
-with open('./data/songs_dataset.json', 'r') as songs_file:
-    with open('./data/lyrics1-100000.json', 'r') as lyrics_file:
+with open('data/songs_dataset.json', 'r') as songs_file:
+    with open('data/lyrics1-100000.json', 'r') as lyrics_file:
         all_songs = json.load(songs_file)
         all_lyrics = json.load(lyrics_file)
         assert type(all_lyrics) == dict
@@ -163,7 +163,7 @@ print("--- Missing lyrics retrieval through search took %s seconds ---" % (end_t
 
 
 start_time = time.time()
-file_path = './data/lyrics_corpus.json'
+file_path = 'data/lyrics_corpus.json'
 with open(file_path, 'w') as f:
     all_lyrics.update({track_id: lyrics for (track_id, lyrics) in songs_lyrics_list if lyrics})
     json.dump(all_lyrics, f)

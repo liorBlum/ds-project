@@ -2,7 +2,8 @@ import json
 import os
 
 all_songs = {}
-spotify_dataset_path = './data/spotify_million_playlist_dataset/'
+spotify_dataset_path = 'data/spotify_million_playlist_dataset/'
+
 
 # Add all songs from a Spotify slice file (from dataset) to all_songs.json
 def add_all_songs_from_file(path):
@@ -23,6 +24,6 @@ def add_all_songs_from_file(path):
 for slice_file in os.listdir(spotify_dataset_path):
     add_all_songs_from_file(spotify_dataset_path + slice_file)
     print(f'added songs from {slice_file}')
-with open('./data/songs_dataset.json', 'w') as f:
+with open('data/songs_dataset.json', 'w') as f:
     json.dump(all_songs, f)
     print(f'\nadded {len(all_songs)} songs')
