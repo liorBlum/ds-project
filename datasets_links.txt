@@ -1,2 +1,4 @@
 songs_dataset - https://drive.google.com/file/d/1FPHx9kIJpfLccA4-PgiW0YOvLRxryowD/view?usp=sharing
 lyrics_corpus.json - https://drive.google.com/file/d/1hnzwo_bb7e2JzuJ81Jw3slzAo8CQIOZZ/view?usp=sharing
+NRC Emotion Lexicon - https://saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm
+songs_emotions.csv - https://drive.google.com/file/d/12DzDSCvOJJD2PKY5dQiW7t_1l3K9pEQQ/view?usp=sharing
