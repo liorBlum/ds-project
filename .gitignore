@@ -15,3 +15,4 @@ msd/input/year1_test_triplets_visible.txt
 msd/input/year1_valid_triplets_hidden.txt
 msd/input/year1_valid_triplets_visible.txt
 data/*
+*.pkl
