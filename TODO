@@ -1,0 +1,3 @@
+implement methods that were used in topic modeling in the emotions part too.
+Make sure that emotion scores are not biased towards shorter songs.
+FUTURE PLAN: COMPARE ALL METHODS (WITH PREDICTING THE ACTUAL PLAYLIST) AND GIVE WEIGHTS ACCORDING TO WHO IS MORE SUCCESSFUL.
