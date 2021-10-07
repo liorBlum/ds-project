@@ -12,7 +12,7 @@ all_urls = []
 all_require_search = []
 all_lyrics = {}
 
-# Build Genius URLs dictionary
+# Build Genius URLs list
 
 print('Building all_urls list...')
 start_time = time.time()
