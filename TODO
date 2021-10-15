@@ -1,5 +1,32 @@
 implement methods that were used in topic modeling in the emotions part too.
 Make sure that emotion scores are not biased towards shorter songs.
-remove i'ma and i'mma from dictionary for topic modeling
-remove numbers, shall from dictionary for topic modeling
+VISUALIZE lyrics emotions in the two example songs with SHAP
+TODO: MAYBE PCA OR OTHER DIMENSION REDUCTION
 FUTURE PLAN: COMPARE ALL METHODS (WITH PREDICTING THE ACTUAL PLAYLIST) AND GIVE WEIGHTS ACCORDING TO WHO IS MORE SUCCESSFUL.
+
+CODE FOR SCATTER3D (USING GO) - FOR MARKER CUSTOMIZATION
+import plotly.graph_objects as go
+import numpy as np
+
+fig = go.Figure(data=[go.Scatter3d(
+    x=pca_2_result[:,0], y=pca_2_result[:,1], z=pca_2_result[:,2],
+    mode='markers',
+    showlegend=True,
+    marker=dict(
+        size=8,
+        color=clusters_k100,
+        colorscale='Portland',   # choose a colorscale
+        opacity=0.9
+    )
+)])
+
+# tight layout
+fig.update_layout(margin=dict(l=0, r=0, b=0, t=0))
+fig.update_scenes(aspectratio={'x': 1.4, 'y': 1.4, 'z': 1.4})
+fig.show()
+
+TSNE:
+from sklearn.manifold import TSNE
+
+tsne_3 = TSNE(n_components=3, perplexity=40, angle=0.2, n_jobs=-1, random_state=28)
+tsne_3_result = tsne_3.fit_transform(all_songs_topics_sample)
